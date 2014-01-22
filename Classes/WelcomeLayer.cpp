@@ -24,18 +24,18 @@ bool WelcomeLayer::init()
 		CCSize winSize=CCDirector::sharedDirector()->getWinSize();
 
 		//加入background
-		CCSprite* background=CCSprite::createWithSpriteFrame(CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName("background.png"));
+		CCSprite* background=CCSprite::createWithSpriteFrameName("background.png");
 		background->setPosition(ccp(winSize.width/2,winSize.height/2));
 		this->addChild(background);
 
 		//加入copyright
-		CCSprite* copyright=CCSprite::createWithSpriteFrame(CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName("shoot_copyright.png"));
+		CCSprite* copyright=CCSprite::createWithSpriteFrameName("shoot_copyright.png");
 		copyright->setAnchorPoint(ccp(0.5,0));
 		copyright->setPosition(ccp(winSize.width/2,winSize.height/2));
 		this->addChild(copyright);
 
 		//加入loading
-		CCSprite* loading=CCSprite::createWithSpriteFrame(CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName("game_loading1.png"));
+		CCSprite* loading=CCSprite::createWithSpriteFrameName("game_loading1.png");
 		loading->setPosition(ccp(winSize.width/2,winSize.height/2-40));
 		this->addChild(loading);
 
@@ -74,6 +74,7 @@ void WelcomeLayer::keyBackClicked()
 	CCDirector::sharedDirector()->end();
 }
 
+//读取本地的分数，如果没有就初始化一个
 bool WelcomeLayer::isHaveSaveFile()
 {
 	if(!CCUserDefault::sharedUserDefault()->getBoolForKey("isHaveSaveFileXml"))
@@ -89,6 +90,8 @@ bool WelcomeLayer::isHaveSaveFile()
 	}
 }
 
+
+//读取本地的分数
 void WelcomeLayer::getHighestHistorySorce()
 {
 	if (isHaveSaveFile())
@@ -96,7 +99,5 @@ void WelcomeLayer::getHighestHistorySorce()
 		int hscore=CCUserDefault::sharedUserDefault()->getIntegerForKey("HighestScore",0);
 		GameOverLayer::highestHistoryScore=hscore;//打开游戏时取得最高分数，初始化给GameOverlayer中的highestHistoryScore
 		CCString* strHighestScore=CCString::createWithFormat("%d",hscore);
-		//CCLog("ssssssssss");
-		//CCLog(strHighestScore->m_sString.c_str());
 	}
 }

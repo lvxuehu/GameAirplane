@@ -6,7 +6,7 @@ USING_NS_CC;
 
 Ufo1Layer::Ufo1Layer(void)
 {
-	p_ufo=NULL;
+	//p_ufo=NULL;
 }
 
 
@@ -28,7 +28,7 @@ bool Ufo1Layer::init(){
 //根据积分计算是否出现ufo1
 void Ufo1Layer::ufo1Ai(int score){
 
-	if (score>0&&score%FUO1_OUT==0)
+	if (score>0&&score%UFO1_OUT==0)
 	{
 		addUfo1();
 	}
@@ -48,7 +48,7 @@ void Ufo1Layer::addUfo1(){
 	//随机生成起始x值
 	int startX=(rand()%rangex)+minStartX;
 	p_ufo->setPosition(ccp(startX,winSize.height+p_ufo->getContentSize().height/2));
-	this->addChild(p_ufo,0,UFO);
+	this->addChild(p_ufo,1,UFO);
 
 	//计算消失的位置
 	int endX=startX;
@@ -69,17 +69,17 @@ void Ufo1Layer::ufoMoveFinished(CCNode* pSender){
 	this->removeChild(pSender);
 }
 
-void Ufo1Layer::ufoRemove(CCSprite* pSender){
+void Ufo1Layer::ufoRemove(CCNode* pSender){
 	this->removeChild(pSender);
 }
 
 
-CCRect Ufo1Layer::getBoundingBox(){
-	CCRect rect=p_ufo->boundingBox();
-	CCPoint pos=convertToWorldSpace(rect.origin);
-	CCRect enemyRect(pos.x,pos.y,rect.size.width,rect.size.height);
-	return enemyRect;
-}
+//CCRect Ufo1Layer::getBoundingBox(){
+//	CCRect rect=p_ufo->boundingBox();
+//	CCPoint pos=convertToWorldSpace(rect.origin);
+//	CCRect enemyRect(pos.x,pos.y,rect.size.width,rect.size.height);
+//	return enemyRect;
+//}
 
 
 

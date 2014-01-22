@@ -31,6 +31,7 @@ bool Bullet2Layer::init(){
 }
 
 
+
 void Bullet2Layer::startShoot(float dt){
     this->schedule(schedule_selector(Bullet2Layer::addBullet),0.15f,kCCRepeatForever,dt);
 }

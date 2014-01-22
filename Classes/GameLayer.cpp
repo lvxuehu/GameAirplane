@@ -14,9 +14,14 @@ GameLayer::GameLayer(){
 	bulletLayer=NULL;
 	bullet2Layer=NULL;
 	enemyLayer=NULL;
+	ufo1Layer=NULL;
+	ufo2Layer=NULL;
 	
 	score=0;
 	bigBoomCount=0;
+
+	labelBigBombCountItem=NULL;
+	menuBigBoom=NULL;
 }
 
 GameLayer::~GameLayer(){
@@ -61,12 +66,12 @@ bool GameLayer::init(){
 		//添加子弹1
 		this->bulletLayer=BulletLayer::create();
 		this->addChild(bulletLayer);
-		//bulletLayer->StartShoot(0.01f);
+		bulletLayer->StartShoot(0.01f);
 
 		//添加子弹2
 		this->bullet2Layer=Bullet2Layer::create();
 		this->addChild(bullet2Layer);
-		bullet2Layer->startShoot(0.01f);
+		//bullet2Layer->startShoot(0.01f);
 
 
 		//添加触摸事件
@@ -83,6 +88,13 @@ bool GameLayer::init(){
 		this->ufo1Layer=Ufo1Layer::create();
 		this->addChild(ufo1Layer);
 		//ufo1Layer->addUfo1();
+
+
+		//加入ufo2
+		this->ufo2Layer=Ufo2Layer::create();
+		this->addChild(ufo2Layer);
+		//ufo2Layer->ufo2Ai(100000);
+
 
 		bRet=true;
 
@@ -140,6 +152,7 @@ void GameLayer::update(float delta){
 					enemy1sToDelete->addObject(enemy1);
 					score+=ENEMY1_SCORE;
 					this->ufo1Layer->ufo1Ai(score);//出现ufo1
+					this->ufo2Layer->ufo2Ai(score);//出现ufo2
 					this->controlLayer->updateScore(score);
 				}else;
 			}
@@ -186,6 +199,7 @@ void GameLayer::update(float delta){
 					enemy2sToDelete->addObject(enemy2);
 					score+=ENEMY2_SCORE;
 					this->ufo1Layer->ufo1Ai(score);//出现ufo1
+					this->ufo2Layer->ufo2Ai(score);//出现ufo2
 					this->controlLayer->updateScore(score);
 				}
 				else ;
@@ -232,6 +246,7 @@ void GameLayer::update(float delta){
 					enemy3sToDelete->addObject(enemy3);
 					score+=ENEMY3_SCORE;
 					this->ufo1Layer->ufo1Ai(score);//出现ufo1
+					this->ufo2Layer->ufo2Ai(score);//出现ufo2
 					this->controlLayer->updateScore(score);
 				}
 				//此时处在animate阶段,不做处理
@@ -282,6 +297,7 @@ void GameLayer::update(float delta){
 					p_Enemy1sToDelete->addObject(p_Enemy1);
 					score+=ENEMY1_SCORE;
 					this->ufo1Layer->ufo1Ai(score);//出现ufo1
+					this->ufo2Layer->ufo2Ai(score);//出现ufo2
 					this->controlLayer->updateScore(score);
 				}else;
 			}
@@ -325,6 +341,7 @@ void GameLayer::update(float delta){
 					p_Enemy2->loseLife();		
 					score+=ENEMY2_SCORE;
 					this->ufo1Layer->ufo1Ai(score);//出现ufo1
+					this->ufo2Layer->ufo2Ai(score);//出现ufo2
 					this->controlLayer->updateScore(score);
 				}
 				
@@ -368,6 +385,7 @@ void GameLayer::update(float delta){
 					p_Enemy3->loseLife();		
 					score+=ENEMY3_SCORE;
 					this->ufo1Layer->ufo1Ai(score);//出现ufo1
+					this->ufo2Layer->ufo2Ai(score);//出现ufo2
 					this->controlLayer->updateScore(score);
 				}				
 			}
@@ -463,23 +481,135 @@ void GameLayer::update(float delta){
 	/************************************************************************/
 	/* hero和ufo1碰撞                                                                                             */
 	/************************************************************************/
-	CCSprite* ufo1=(CCSprite*)this->ufo1Layer->getChildByTag(UFO);
+	CCNode* ufo1=this->ufo1Layer->getChildByTag(UFO);
 
-	CCRect rect=ufo1->boundingBox();
+	/*CCRect rect=ufo1->boundingBox();
 	CCPoint pos=convertToWorldSpace(rect.origin);
-	CCRect enemyRect(pos.x,pos.y,rect.size.width,rect.size.height);
+	CCRect enemyRect(pos.x,pos.y,rect.size.width,rect.size.height);*/
 	
 
-
-	if (enemyRect.intersectsRect(hero->boundingBox()))
+	if (ufo1!=NULL)
 	{
-		this->ufo1Layer->ufoRemove(ufo1);
+		if (ufo1->boundingBox().intersectsRect(hero->boundingBox()))
+		{
+			this->ufo1Layer->ufoRemove(ufo1);
+			this->bulletLayer->StopShoot();
+			this->bullet2Layer->startShoot(0.01f);
+			this->scheduleOnce(schedule_selector(GameLayer::bullet2ShootEnd),5);
+		}
 	}
 
 
+	/************************************************************************/
+	/* hero和ufo2碰撞                                                                                             */
+	/************************************************************************/
+	CCNode* ufo2=this->ufo2Layer->getChildByTag(UFO2);
+
+	/*CCRect rect=ufo1->boundingBox();
+	CCPoint pos=convertToWorldSpace(rect.origin);
+	CCRect enemyRect(pos.x,pos.y,rect.size.width,rect.size.height);*/
+	
+
+	if (ufo2!=NULL)
+	{
+		if (ufo2->boundingBox().intersectsRect(hero->boundingBox()))
+		{
+			this->ufo2Layer->ufoRemove(ufo2);
+			this->bigBoomCount++;
+			updateBigBombButton(bigBoomCount);
+		}
+	}
+
+}
+
+
+//hero碰撞红色炸弹后，生成左下角炸弹
+void GameLayer::updateBigBombButton(int bombCount){
+	CCSprite* bigBombNormal=CCSprite::createWithSpriteFrameName("bomb.png");
+	CCSprite* bigBombPressed=CCSprite::createWithSpriteFrameName("bomb.png");
+	if (bombCount<0)
+	{
+		return;
+	}else if (bombCount==0)
+	{
+		if (this->getChildByTag(TAG_BIGBOOM_MENUITEM))
+		{
+			this->removeChildByTag(TAG_BIGBOOM_MENUITEM,true);
+		}
+		if (this->getChildByTag(TAG_BIGBOOMCOUNT_LABEL))
+		{
+			this->removeChildByTag(TAG_BIGBOOMCOUNT_LABEL,true);
+		}
+	}else if (bombCount==1)
+	{
+		if (!this->getChildByTag(TAG_BIGBOOM_MENUITEM))
+		{
+			cocos2d::CCMenuItemImage* bigBombMenuItem=CCMenuItemImage::create();
+			bigBombMenuItem->initWithNormalSprite(bigBombNormal,bigBombPressed,NULL,this,menu_selector(GameLayer::bigBombMenuCallBack));
+			bigBombMenuItem->setPosition(bigBombNormal->getContentSize().width/2+10,bigBombNormal->getContentSize().height/2+10);
+			menuBigBoom=CCMenu::create(bigBombMenuItem,NULL);
+			menuBigBoom->setPosition(cocos2d::CCPointZero);
+			this->addChild(menuBigBoom,0,TAG_BIGBOOM_MENUITEM);
+
+		}
+		if (this->getChildByTag(TAG_BIGBOOMCOUNT_LABEL))
+		{
+			this->removeChildByTag(TAG_BIGBOOMCOUNT_LABEL,true);
+		}
+	}else
+	{
+		if (!this->getChildByTag(TAG_BIGBOOM_MENUITEM))
+		{
+			CCMenuItemImage* bombMenuItem=CCMenuItemImage::create();
+			bombMenuItem->initWithNormalSprite(bigBombNormal,bigBombPressed,NULL,this,menu_selector(GameLayer::bigBombMenuCallBack));
+			bombMenuItem->setPosition(bigBombNormal->getContentSize().width/2+10,bigBombNormal->getContentSize().height/2+10);
+			menuBigBoom=CCMenu::create(bombMenuItem,NULL);
+			menuBigBoom->setPosition(CCPointZero);
+			this->addChild(menuBigBoom,TAG_BIGBOOM_MENUITEM);
+		}
+
+		if (this->getChildByTag(TAG_BIGBOOMCOUNT_LABEL))
+		{
+			this->removeChildByTag(TAG_BIGBOOMCOUNT_LABEL,true);
+		}
+		if (bombCount>0&&bigBoomCount<MAX_BIGBOOM_COUNT)
+		{
+			CCString* strCount=CCString::createWithFormat("X%d",bigBoomCount);
+			labelBigBombCountItem=CCLabelBMFont::create(strCount->m_sString.c_str(),"font/font.fnt");
+			labelBigBombCountItem->setColor(ccc3(143,146,147));
+			labelBigBombCountItem->setAnchorPoint(ccp(0,0.5));
+			labelBigBombCountItem->setPosition(ccp(bigBombNormal->getContentSize().width+15,bigBombNormal->getContentSize().height/2+5));
+			this->addChild(labelBigBombCountItem,0,TAG_BIGBOOMCOUNT_LABEL);
+		}
+
+
+	}
+	
+}
+
+
+//点击使用炸弹
+void GameLayer::bigBombMenuCallBack(CCObject* pEvent){
+	if (bigBoomCount>0 &&!CCDirector::sharedDirector()->isPaused())
+	{
+		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("sound/use_bomb.mp3");
+		bigBoomCount--;		
+		score+=this->enemyLayer->m_pAllEnemy1->count()*ENEMY1_SCORE;
+		score+=this->enemyLayer->m_pAllEnemy2->count()*ENEMY2_SCORE;
+		score+=this->enemyLayer->m_pAllEnemy3->count()*ENEMY3_SCORE;
+		this->enemyLayer->removeAllEnemy();
+		updateBigBombButton(bigBoomCount);
+		this->controlLayer->updateScore(score);
+	}
+}
 
 
 
+
+//子弹二发射倒计时结束时触发
+void GameLayer::bullet2ShootEnd(float dt){
+	this->bulletLayer->StartShoot(0.01f);
+	this->bullet2Layer->stopShoot();
 }
 
 
