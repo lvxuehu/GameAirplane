@@ -57,9 +57,21 @@ void Ufo1Layer::addUfo1(){
 	//飞行的时间(速度)
 	float durationTime=2.0;
 
+	//降落伞效果
+	CCMoveBy* move1=CCMoveBy::create(0.2f,ccp(0,-150));
+	CCMoveBy* move2=CCMoveBy::create(0.7f,ccp(0,100));
+	CCSequence* upAndDownAction=CCSequence::create(move1,move2,NULL);
+
+	//摇摆效果
+	p_ufo->setRotation(20);
+	CCActionInterval* rotate2=CCRotateBy::create(0.5f,-40);
+	CCSequence* rotateSequence=CCSequence::create(rotate2,rotate2->reverse(),NULL);
+	p_ufo->runAction(CCRepeatForever::create(rotateSequence));
+
+
 	CCFiniteTimeAction* moveTo=CCMoveTo::create(durationTime,ccp(endX,endY));
 	CCFiniteTimeAction* moveEnd=CCCallFuncN::create(this,callfuncN_selector(Ufo1Layer::ufoMoveFinished));
-	CCSequence* sequence=CCSequence::create(moveTo,moveEnd,NULL);
+	CCSequence* sequence=CCSequence::create(upAndDownAction,moveTo,moveEnd,NULL);	
 
 	p_ufo->runAction(sequence);
 
